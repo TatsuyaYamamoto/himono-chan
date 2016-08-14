@@ -1,6 +1,7 @@
 package net.sokontokoro_factory.himono.service;
 
 import net.sokontokoro_factory.himono.exception.ConflictException;
+import net.sokontokoro_factory.himono.exception.InvalidArgumentException;
 import net.sokontokoro_factory.himono.exception.NoResourceException;
 import net.sokontokoro_factory.himono.persistence.entity.DeviceEntity;
 import net.sokontokoro_factory.himono.persistence.entity.UserEntity;
@@ -31,6 +32,41 @@ public class MasterService {
     @Autowired
     UserRepository userRepo;
 
+    @Autowired
+    DeviceRepository deviceRepo;
+
+    @Autowired
+    Authenticator authenticator;
+
+    /**
+     * 端末リストを取得する
+     * @param offset
+     * @param limit
+     * @return
+     */
+    public List<DeviceEntity> getAllDevice(int offset, int limit){
+        logger.traceEntry();
+        return logger.traceExit(deviceRepo.findAll());
+    }
+
+    /**
+     * 端末をID検索する
+     *
+     * @param deviceId
+     * @return  該当なし
+     */
+    public DeviceEntity getDeviceById(String deviceId) throws NoResourceException {
+        logger.traceEntry(deviceId);
+        DeviceEntity device = deviceRepo.findOne(deviceId);
+
+        if(device == null){
+            logger.traceExit("requested device not found. ID: {}", deviceId);
+            throw new NoResourceException();
+        }
+
+        return logger.traceExit(deviceRepo.findOne(deviceId));
+    }
+
     /**
      * ユーザーリストを取得する
      * @param offset
@@ -56,9 +92,66 @@ public class MasterService {
         if(user == null){
             logger.traceExit("requested user not found. ID: {}", userId);
             throw new NoResourceException();
-        }else {
-            return logger.traceExit(userRepo.findOne(userId));
         }
+
+        return logger.traceExit(userRepo.findOne(userId));
+    }
+
+    /**
+     * パスワード認証を行う
+     *
+     * @param userId
+     * @return          認証OKの場合ユーザーEntity. 認証NGの場合null
+     */
+    public boolean validatePassword(String userId, String rawPassword){
+        logger.traceEntry(userId, rawPassword);
+        String encryptedPassword = authenticator.encryptPassword(rawPassword);
+
+        UserEntity userEntity = userRepo.findByIdAndPassword(userId, encryptedPassword);
+
+        if(userEntity == null){
+            return logger.traceExit(false);
+        }else{
+            return logger.traceExit(true);
+        }
+    }
+
+    /**
+     * 端末を登録する
+     *
+     * @param id
+     * @param name
+     * @param userId
+     * @throws ConflictException
+     * @throws InvalidArgumentException
+     */
+    @Transactional(readOnly = false)
+    public void registerDevice(
+            String id,
+            String name,
+            String userId) throws ConflictException, InvalidArgumentException {
+        logger.entry(id, name);
+
+        // IDの重複確認
+        if(deviceRepo.exists(id)){
+            logger.trace("cannot register a device as a result of to conflict (ID: {})", id);
+            throw new ConflictException();
+        }
+
+        // 管理ユーザーの存在確認
+        if(!userRepo.exists(userId)){
+            logger.trace("requested user not found  (UserID: {})", userId);
+            throw new InvalidArgumentException();
+        }
+
+        DeviceEntity newDevice = new DeviceEntity();
+        newDevice.setId(id);
+        newDevice.setName(name);
+        newDevice.setUserId(userId);
+        newDevice.setCreated(System.currentTimeMillis());
+
+        deviceRepo.save(newDevice);
+        logger.traceExit("success to save a new device, {}", newDevice);
     }
 
     /**
