@@ -64,7 +64,20 @@ public class MasterService {
             throw new NoResourceException();
         }
 
-        return logger.traceExit(deviceRepo.findOne(deviceId));
+        return logger.traceExit(device);
+    }
+
+    /**
+     * 端末をユーザーID検索する
+     *
+     * @param userId
+     * @return
+     */
+    public List<DeviceEntity> getDeviceByUserId(String userId) throws NoResourceException {
+        logger.traceEntry(userId);
+        List<DeviceEntity> devices = deviceRepo.findByUserId(userId);
+
+        return logger.traceExit(devices);
     }
 
     /**
@@ -132,7 +145,7 @@ public class MasterService {
             String userId) throws ConflictException, InvalidArgumentException {
         logger.entry(id, name);
 
-        // IDの重複確認
+        // 端末IDの重複確認
         if(deviceRepo.exists(id)){
             logger.trace("cannot register a device as a result of to conflict (ID: {})", id);
             throw new ConflictException();
