@@ -40,10 +40,36 @@ public class DeviceRestController {
     ModelMapper modelMapper;
 
     /**
-     * 端末情報を取得する
+     * @api {get} /api/devices/{device_id} get device data
+     * @apiGroup Devices
+     * @apiVersion 1.0.0
+     * @apiDescription read device
+     * @apiPermission admin
      *
-     * @param deviceId
-     * @return
+     * @apiParam {String}     deviceId          Device ID
+     *
+     *
+     * @apiSuccess {Integer}    id              Device ID
+     * @apiSuccess {Long}       name            Device name
+     * @apiSuccess {Integer}    manage_user_id  user id who manages a taget device.
+     * @apiSuccess {String}     created         date registerd
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *         "id": "12:23:34:56:77",
+     *         "name": "devicename",
+     *         "manage_user_id": "aiueo",
+     *         "created": 1234567890
+     *     }
+     *
+     * @apiError Device has not found.
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400 Bad Request
+     *
+     * @apiError System doesn't have any data.
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 404 Not Found
      */
     @RequestMapping(
             value = "{deviceId}",
@@ -63,10 +89,29 @@ public class DeviceRestController {
     }
 
     /**
-     * 端末を登録する
+     * @api {get} /api/devices register device
+     * @apiGroup Devices
+     * @apiVersion 1.0.0
+     * @apiDescription post device
+     * @apiPermission admin
      *
-     * @param form
-     * @return
+     * @apiParam {String}       deviceId        Device ID
+     *
+     *
+     * @apiSuccess {Integer}    device_id       Device ID
+     * @apiSuccess {Long}       device_name     Device name
+     * @apiSuccess {Integer}    manage_user_id  user id who manages a taget device.
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 201 Created
+     *
+     * @apiError DeviceId already exists.
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 409 Conflict
+     *
+     * @apiError User donesn't exist.
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400 Bad Request
      */
     @RequestMapping(
             method = RequestMethod.POST,
@@ -88,20 +133,59 @@ public class DeviceRestController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
+
     /**
-     * 乾湿データを取得する
+     * @api {get} /api/devices/{device_id}/humidities get humidity data
+     * @apiGroup Collections
+     * @apiVersion 1.0.0
+     * @apiDescription read list of humidity
+     * @apiPermission admin
      *
-     * @param deviceId
-     * @param offsetTime
-     * @param limitTime
-     * @return
+     * @apiParam {String}     deviceId          Device ID
+     * @apiParam {String}     offset_time       start date of data that system provides
+     * @apiParam {String}     limit_time        end date of data that system provides
+     *
+     *
+     * @apiSuccess {Array}      humidities      Array of Humidity data.
+     * @apiSuccess {Integer}    value           value of humidiry
+     * @apiSuccess {Long}       measured        measured date
+     * @apiSuccess {Integer}    count           number of humidities.
+     * @apiSuccess {String}     device_id       measured device ID
+     * @apiSuccess {String}     device_name     measured device name
+     * @apiSuccess {Long}       offset_time     start date of data that system provides
+     * @apiSuccess {Long}       limit_time      end date of data that system provides
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *         "humidities": [
+     *             {
+     *                 "value": "123-456-789",
+     *                 "measured": 1234567890,
+     *             },
+     *             ...
+     *         ],
+     *         "count": 25252,
+     *         "device_id": 12:23:34:56:77,
+     *         "device_name": "DeviceName",
+     *         "offset_time": 1234567890,
+     *         "limit_time": 4567890123
+     *     }
+     *
+     * @apiError Device has not found.
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400 Bad Request
+     *
+     * @apiError System doesn't have any data.
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 404 Not Found
      */
     @RequestMapping(
-            value = "/{deviceId}/humidities",
+            value = "/{device_id}/humidities",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity get(
-            @PathVariable("deviceId")
+            @PathVariable("device_id")
                     String deviceId,
             @RequestParam(name = "offset_time", required = false)
                     Long offsetTime,
@@ -151,22 +235,32 @@ public class DeviceRestController {
     }
 
 
+
     /**
-     * 乾湿値を登録する
+     * @api {get} /api/devices/{device_id}/humidities register humidity data
+     * @apiGroup Humidity
+     * @apiVersion 1.0.0
+     * @apiDescription register humidity data
+     * @apiPermission
      *
-     * @param form
-     * @param deviceId
-     * @param uriBuilder
-     * @return
+     * @apiParam {String}     device_id DeviceID
+     * @apiParam {String}     value     Measured value of humidity
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiError Device has not found.
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400 Bad Request
      */
     @RequestMapping(
-            value = "/{deviceId}/humidities",
+            value = "/{device_id}/humidities",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity post(
             @RequestBody
                     PostHumidityForm form,
-            @PathVariable("deviceId")
+            @PathVariable("device_id")
                     String deviceId,
             UriComponentsBuilder uriBuilder){
 
