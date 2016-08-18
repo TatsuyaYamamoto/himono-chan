@@ -41,3 +41,7 @@ buildscript {
         mavenCentral()
     }
 }
+
+springBoot {
+    executable = true
+}
