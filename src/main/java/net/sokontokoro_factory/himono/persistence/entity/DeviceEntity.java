@@ -29,7 +29,7 @@ public class DeviceEntity {
     /**
      * 管理ユーザーID
      */
-    @Column(name = "USER_ID", nullable = false, unique = true)
+    @Column(name = "USER_ID", nullable = false)
     @Getter
     @Setter
     private String userId;
